@@ -71,9 +71,16 @@
 #include <netinet/in_systm.h>
 #endif
 
+#ifdef __NetBSD__
+#include <netinet/in_systm.h>
+#include <net/if.h>
+#include <net/if_ether.h>
+#else
+#include <net/ethernet.h>
+#endif
+
 #include <syslog.h>
 #include <sys/wait.h>
-#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>

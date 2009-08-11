@@ -41,6 +41,7 @@ n2n.spec
 supernode.c
 tuntap_linux.c
 tuntap_freebsd.c
+tuntap_netbsd.c
 tuntap_osx.c
 twofish.c
 twofish.h
