@@ -773,9 +773,9 @@ void hexdump(char *buf, u_int len) {
 /* *********************************************** */
 
 void print_n2n_version() {
-  printf("Welcome to n2n v.%s for %s\n"
+  printf("Welcome to kitten-n2n v.%s for %s\n"
          "Built on %s\n"
-	 "Copyright 2007-08 - http://www.ntop.org\n\n",
+	 "Copyright 2007-08 - http://www.ntop.org, 2009 - http://www.kitten-technologies.co.uk\n\n",
          version, osName, buildDate);
 }
 

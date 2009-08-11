@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script makes a SRPM - a source RPM file which can be built into the
 # appropriate distro specific RPM for any platform.
@@ -15,14 +15,13 @@
 
 set -e
 
-function exit_fail()
-{
+exit_fail() {
     echo "$1"
     exit 1
 }
 
-PACKAGE="n2n"
-PKG_VERSION="1.3"
+PACKAGE="kitten-n2n"
+PKG_VERSION="1.4"
 PKG_AND_VERSION="${PACKAGE}-${PKG_VERSION}"
 
 TEMPDIR="tmp"
@@ -47,16 +46,6 @@ twofish.c
 twofish.h
 edge.8
 supernode.1
-debian/changelog
-debian/compat
-debian/control
-debian/copyright
-debian/n2n.dirs
-debian/n2n.docs
-debian/n2n.install
-debian/n2n.manpages
-debian/README.Debian
-debian/rules
 "
 
 BASE=`pwd`
@@ -74,7 +63,7 @@ fi
 
 mkdir ${TEMPDIR} >&2
 
-pushd ${TEMPDIR} >&2
+cd ${TEMPDIR}
 
 echo "Creating staging directory ${PWD}/${PKG_AND_VERSION}" >&2
 
@@ -85,20 +74,20 @@ fi
 
 mkdir ${PKG_AND_VERSION}
 
-pushd ${BASE} >&2
+cd ${BASE} >&2
 
 echo "Copying in files" >&2
 for F in ${SOURCE_MANIFEST}; do
-    cp --parents -a $F ${TEMPDIR}/${PKG_AND_VERSION}/
+    cp $F ${TEMPDIR}/${PKG_AND_VERSION}/
 done
 
-popd >&2
+cd ${TEMPDIR} >&2
 
 TARFILE="${PKG_AND_VERSION}.tar.gz"
 echo "Creating ${TARFILE}" >&2
 tar czf ${BASE}/${TARFILE} ${PKG_AND_VERSION}
 
-popd >&2
+cd ${BASE} >&2
 
 rm -rf ${TEMPDIR} >&2
 

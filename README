@@ -91,5 +91,15 @@ Once the IPv6 addresses are configured and edge started, IPv6 neighbor discovery
 packets flow (get broadcast) and IPv6 entities self arrange. Test your IPv6
 setup with ping6 - the IPv6 ping command.
 
+NetBSD Support
+------------
+
+Kitten-n2n supports NetBSD 5.0. You need to create tap interfaces in advance
+by running:
+
+# ifconfig tap0 create
+
+Then edge should work for you.
 
 (C) 2007,2008 - Luca Deri <deri@ntop.org>, Richard Andrews <andrews@ntop.org>
+(C) 2009 - Alaric Snell-Pym <alaric@kitten-technologies.co.uk>
