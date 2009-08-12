@@ -36,7 +36,7 @@ LIBS=-lpthread
 APPS=edge supernode
 DOCS=edge.8 supernode.1
 
-all: $(APPS) #$(DOCS)
+all: $(APPS) $(DOCS)
 
 edge: edge.c $(N2N_LIB) n2n.h Makefile
 	$(CC) $(CFLAGS) edge.c $(N2N_LIB) $(LIBS) -o edge
@@ -57,7 +57,7 @@ version.c:
 	@date +"%D %r" | sed -e 's/.*/const char * buildDate = "&";/' >> version.c
 
 clean:
-	rm -rf $(N2N_OBJS) $(N2N_LIB) $(APPS) $(DOCS) *.dSYM *~ version.c
+	rm -rf $(N2N_OBJS) $(N2N_LIB) $(APPS) *.dSYM *~ version.c
 
 install: edge supernode edge.8 supernode.1
 	$(MKDIR) $(BINDIR) $(SBINDIR) $(MAN1DIR) $(MAN8DIR)
