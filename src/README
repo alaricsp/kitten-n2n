@@ -101,5 +101,11 @@ by running:
 
 Then edge should work for you.
 
+TODOs
+------------
+
+1. I note that a supernode on a multi-homed host, when used as a relay, will originate packets with the default outgoing interface, rather than back out the IP they came in on. It should be possible to record what IP a request came in on, and reply from the same IP. Check Stevens.
+2. There's an int being cast to a void* to be passed in as a thread parameter. Just allocate the int on the heap and pass the pointer to that in, then cast it back and free it in the thread.
+
 (C) 2007,2008 - Luca Deri <deri@ntop.org>, Richard Andrews <andrews@ntop.org>
 (C) 2009 - Alaric Snell-Pym <alaric@kitten-technologies.co.uk>
