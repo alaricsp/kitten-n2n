@@ -292,6 +292,24 @@ void send_packet(n2n_sock_info_t * sinfo,
 int traceLevel = 2 /* NORMAL */;
 int useSyslog = 0, syslog_opened = 0;
 
+#ifndef WIN32
+
+void writePid(char *pidfile)
+{
+   FILE *fp;
+   
+   fp = fopen(pidfile, "w");
+   if (!fp) {
+      traceEvent(TRACE_ERROR, "Could not open pidfile for writing: %s", pidfile);
+      exit(1);
+   }
+   
+   fprintf(fp, "%u", getpid());
+   fclose(fp);
+}
+
+#endif
+
 #define N2N_TRACE_DATESIZE 32
 void traceEvent(int eventTraceLevel, char* file, int line, char * format, ...) {
   va_list va_ap;

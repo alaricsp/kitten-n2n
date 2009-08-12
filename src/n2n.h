@@ -248,6 +248,12 @@ extern void send_ack(n2n_sock_info_t * sinfo,
 		     struct peer_addr *remote_peer,
 		     char *src_mac);
 
+extern int useSyslog;
+
+#ifndef WIN32
+extern void writePid(char *pidfile);
+#endif
+
 extern void traceEvent(int eventTraceLevel, char* file, int line, char * format, ...);
 extern int  tuntap_open(tuntap_dev *device, char *dev, char *device_ip, 
 			char *device_mask, const char * device_mac, int mtu);

@@ -30,7 +30,13 @@ struct tx_stats
 
 static void help() {
   print_n2n_version();
-  printf("supernode -l <listening port> [-v] [-h]\n");
+  printf("supernode -l <listening port> [-v] [-h]"
+  #ifndef WIN32
+  	 " [-u <uid>] [ -g <gid>]"
+  	 " [-f] [-P <pidfile>]"
+  #endif
+    "\n");
+  
   exit(0);
 }
 
@@ -444,12 +450,19 @@ int main(int argc, char* argv[]) {
   n2n_sock_info_t udp_sinfo;
   n2n_sock_info_t tcp_sinfo;
 
+#ifndef WIN32
+  uid_t userid=0; /* root is the only guaranteed ID */
+  gid_t groupid=0; /* root is the only guaranteed ID */
+  int   fork_as_daemon=0;
+  char  *pidfile = NULL;
+#endif
+
 #ifdef WIN32
   initWin32();
 #endif
 
   optarg = NULL;
-  while((opt = getopt_long(argc, argv, "l:vh", long_options, NULL)) != EOF) {
+  while((opt = getopt_long(argc, argv, "l:vhu:g:fP:", long_options, NULL)) != EOF) {
     switch (opt) {
     case 'l': /* local-port */
       local_port = atoi(optarg) & 0xffff;
@@ -460,6 +473,29 @@ int main(int argc, char* argv[]) {
     case 'v': /* verbose */
       traceLevel = 3;
       break;
+#ifndef WIN32
+
+    case 'u': /* uid */
+      {
+        userid = atoi(optarg);
+        break;
+      }
+    case 'g': /* uid */
+      {
+        groupid = atoi(optarg);
+        break;
+      }
+    case 'f' : /* fork as daemon */
+      {
+        fork_as_daemon = 1;
+        break;
+      }
+    case 'P': /* pidfile */
+      {
+        pidfile = strdup(optarg);
+        break;
+      }
+#endif
     }
   }
 
@@ -473,7 +509,28 @@ int main(int argc, char* argv[]) {
   tcp_sinfo.is_udp_socket=0;
   tcp_sinfo.sock = open_socket(local_port, 0, 1);
   if(tcp_sinfo.sock < 0) return(-1);
+ 
+#ifndef WIN32
+  if ( (userid != 0) || (groupid != 0 ) ) {
+    traceEvent(TRACE_NORMAL, "Listening socket up. Dropping privileges to uid=%d, gid=%d", userid, groupid);
 
+    /* Finished with the need for root privileges. Drop to unprivileged user. */
+    setreuid( userid, userid );
+    setregid( groupid, groupid );
+  }
+
+ if ( fork_as_daemon )
+   {
+     useSyslog=1; /* traceEvent output now goes to syslog. */
+     daemon( 0, 0 );
+   }
+   
+   if ( pidfile )
+   {
+      writePid(pidfile);
+   }
+#endif
+  
   traceEvent(TRACE_NORMAL, "Supernode ready: listening on port %hu [TCP/UDP]", local_port);
 
   while(1) {

@@ -1,0 +1,5 @@
+@comment $NetBSD$
+bin/supernode
+man/man1/supernode.1
+man/man8/edge.8
+sbin/edge

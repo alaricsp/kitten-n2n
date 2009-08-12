@@ -256,8 +256,9 @@ static void help() {
 	 "-k <encrypt key> "
 	 "-s <netmask> "
 #ifndef WIN32
-	 "[-u <uid> -g <gid>]"
+	 "[-u <uid>] [-g <gid>]"
 	 "[-f]"
+	 "[-P <pidfile>]"
 #endif
 	 "[-m <MAC address>]"
 	 "\n"
@@ -281,6 +282,7 @@ static void help() {
   printf("-u <UID>                 | User ID (numeric) to use when privileges are dropped\n");
   printf("-g <GID>                 | Group ID (numeric) to use when privileges are dropped\n");
   printf("-f                       | Fork and run as a daemon. Use syslog.\n");
+  printf("-P <pidfile>             | path to write the daemon PID to\n");
 #endif
   printf("-m <MAC address>         | Choose a MAC address for the TAP interface\n"
          "                         | eg. -m 01:02:03:04:05:06\n");
@@ -1142,8 +1144,6 @@ static void supernode2addr(n2n_edge_t * eee, char* addr) {
 
 /* ***************************************************** */
 
-extern int useSyslog;
-
 #define N2N_NETMASK_STR_SIZE 16 /* dotted decimal 12 numbers + 3 dots */
 
 
@@ -1160,6 +1160,7 @@ int main(int argc, char* argv[]) {
   uid_t userid=0; /* root is the only guaranteed ID */
   gid_t groupid=0; /* root is the only guaranteed ID */
   int   fork_as_daemon=0;
+  char  *pidfile = NULL;
 #endif
 
   size_t numPurged;
@@ -1231,7 +1232,7 @@ effectiveargv[effectiveargc] = 0;
   /* {int k;for(k=0;k<effectiveargc;++k)  printf("%s\n",effectiveargv[k]);} */
 
   optarg = NULL;
-  while((opt = getopt_long(effectiveargc, effectiveargv, "k:a:bc:u:g:m:M:s:d:l:p:fvhrt", long_options, NULL)) != EOF) {
+  while((opt = getopt_long(effectiveargc, effectiveargv, "k:a:bc:u:g:m:M:s:d:l:p:fP:vhrt", long_options, NULL)) != EOF) {
     switch (opt) {
     case 'a':
 		  printf("%s\n", optarg);
@@ -1259,6 +1260,11 @@ effectiveargv[effectiveargc] = 0;
         fork_as_daemon = 1;
         break;
       }
+      case 'P' : /* pidfile */
+        {
+          pidfile = strdup(optarg);
+          break;
+        }
 #endif
     case 'm' : /* device_mac */
       {
@@ -1361,6 +1367,12 @@ effectiveargv[effectiveargc] = 0;
       useSyslog=1; /* traceEvent output now goes to syslog. */
       daemon( 0, 0 );
     }
+    
+    if ( pidfile )
+    {
+       writePid(pidfile);
+    }
+    
 #endif
 
   update_registrations(&eee);
