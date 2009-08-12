@@ -34,7 +34,7 @@ N2N_OBJS=n2n.o minilzo.o twofish.o tuntap_freebsd.o tuntap_netbsd.o tuntap_linux
 LIBS=-lpthread
 
 APPS=edge supernode
-DOCS=edge.8.gz supernode.1.gz
+DOCS=edge.8 supernode.1
 
 all: $(APPS) #$(DOCS)
 
@@ -46,9 +46,6 @@ supernode: supernode.c $(N2N_LIB) n2n.h Makefile
 
 .c.o: n2n.h Makefile
 	$(CC) $(CFLAGS) -c $<
-
-%.gz : %
-	gzip -c $< > $@
 
 $(N2N_LIB): $(N2N_OBJS)
 	ar rcs $(N2N_LIB) $(N2N_OBJS)
@@ -62,13 +59,12 @@ version.c:
 clean:
 	rm -rf $(N2N_OBJS) $(N2N_LIB) $(APPS) $(DOCS) *.dSYM *~ version.c
 
-install: edge supernode edge.8.gz supernode.1.gz
-	echo "MANDIR=$(MANDIR)"
+install: edge supernode edge.8 supernode.1
 	$(MKDIR) $(BINDIR) $(SBINDIR) $(MAN1DIR) $(MAN8DIR)
 	$(INSTALL_PROG) supernode $(BINDIR)/
 	$(INSTALL_PROG) edge $(SBINDIR)/
-	$(INSTALL_DOC) edge.8.gz $(MAN8DIR)/
-	$(INSTALL_DOC) supernode.1.gz $(MAN1DIR)/
+	$(INSTALL_DOC) edge.8 $(MAN8DIR)/
+	$(INSTALL_DOC) supernode.1 $(MAN1DIR)/
 
 # Courtesy of Ole Tange <ole@tange.dk>
 
