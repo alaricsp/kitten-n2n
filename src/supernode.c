@@ -351,6 +351,10 @@ static void handle_packet(char *packet, u_int packet_len,
 
 /* *********************************************** */
 
+struct tcpReadThreadArgs {
+   int socket;
+};
+
 static
 #ifdef WIN32
 DWORD tcpReadThread(LPVOID lpArg)
@@ -358,12 +362,15 @@ DWORD tcpReadThread(LPVOID lpArg)
   void* tcpReadThread(void *lpArg)
 #endif
 {
+   struct tcpReadThreadArgs *args = (struct tcpReadThreadArgs *)lpArg;
   n2n_sock_info_t sinfo;
   char c[1600];
   int new_line = 0;
 
-  sinfo.sock=(int)lpArg;
+  sinfo.sock=args->socket;
   sinfo.is_udp_socket=0; /* TCP in this case */
+
+  free(args);
 
   traceEvent(TRACE_NORMAL, "Handling sock_fd %d", sinfo.sock);
 
@@ -438,7 +445,16 @@ static void startTcpReadThread(int sock_fd) {
   int rc;
   pthread_t threadId;
 
-  rc = pthread_create(&threadId, NULL, tcpReadThread, (void*)sock_fd);
+  struct tcpReadThreadArgs *args;
+  args = (struct tcpReadThreadArgs *)malloc(sizeof (struct tcpReadThreadArgs));
+  if (args) {
+     args->socket = sock_fd;
+     rc = pthread_create(&threadId, NULL, tcpReadThread, (void*)args);
+  }
+  else {
+     traceEvent(TRACE_ERROR, "Could not allocate memory to pass arguments to TCP read thread");
+     exit(1);
+  }
 #endif
 }
 
