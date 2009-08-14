@@ -248,7 +248,7 @@ static void help() {
   print_n2n_version();
 
   printf("edge "
-#ifdef __linux__
+#ifndef WIN32
 	 "-d <tun device> "
 #endif
 	 "-a <tun IP address> "
@@ -1150,7 +1150,7 @@ static void supernode2addr(n2n_edge_t * eee, char* addr) {
 int main(int argc, char* argv[]) {
   int opt=0;
   u_int16_t local_port = 0 /* any port */;
-  char *tuntap_dev_name = "edge0";
+  char *tuntap_dev_name = NULL;
   char *ip_addr = NULL;
   char  netmask[N2N_NETMASK_STR_SIZE]="255.255.255.0";
   int   mtu = DEFAULT_MTU;
@@ -1187,6 +1187,10 @@ int main(int argc, char* argv[]) {
 #ifdef WIN32
   tuntap_dev_name = "";
 #endif
+#ifdef __linux__
+  tuntap_dev_name = "edge0";
+#endif
+
   memset(&(eee.supernode), 0, sizeof(eee.supernode));
   eee.supernode.family = AF_INET;
 
@@ -1286,11 +1290,9 @@ effectiveargv[effectiveargc] = 0;
       snprintf(eee.supernode_ip, sizeof(eee.supernode_ip), "%s", optarg);
       supernode2addr(&eee, eee.supernode_ip);
       break;
-#ifdef __linux__
     case 'd': /* tun-device */
       tuntap_dev_name = strdup(optarg);
       break;
-#endif
     case 't': /* Use HTTP tunneling */
       eee.sinfo.is_udp_socket = 0;
       break;

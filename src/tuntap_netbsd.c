@@ -20,6 +20,10 @@
 
 #ifdef __NetBSD__
 
+#include <errno.h>
+#include <string.h>
+#include <net/if_tap.h>
+
 void tun_close(tuntap_dev *device);
 
 /* ********************************** */
@@ -31,46 +35,57 @@ int tuntap_open(tuntap_dev *device /* ignored */,
                 char *device_mask,
                 const char * device_mac,
 		int mtu) {
-  int i;
   char tap_device[N2N_NETBSD_TAPDEVICE_SIZE];
+  struct ifreq req;
 
-  for (i = 0; i < 255; i++) {
-    snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
-
-    device->fd = open(tap_device, O_RDWR);
-    if(device->fd > 0) {
-      traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
-      break;
-    }
+  if (dev) {
+     snprintf(tap_device, sizeof(tap_device), "/dev/%s", dev);
+     device->fd = open(tap_device, O_RDWR);
+     snprintf(tap_device, sizeof(tap_device), "%s", dev);
+  }
+  else {
+     device->fd = open("/dev/tap", O_RDWR);
+     if(device->fd > 0) {
+        if (ioctl(device->fd, TAPGIFNAME, &req) == -1) {
+           traceEvent(TRACE_ERROR, "Unable to obtain name of tap device (%s)", strerror(errno));
+           close(device->fd);
+           return(-1);
+        }
+        else {
+           snprintf(tap_device, sizeof(tap_device), req.ifr_name);
+        }
+     }
   }
 
   if(device->fd < 0) {
-    traceEvent(TRACE_ERROR, "Unable to open tap device");
+    traceEvent(TRACE_ERROR, "Unable to open tap device (%s)", strerror(errno));
     return(-1);
   } else {
     char buf[256];
     FILE *fd;
+
+    traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);
 
     device->ip_addr = inet_addr(device_ip);
 
     if ( device_mac )
     {
         /* Set the hw address before bringing the if up. */
-        snprintf(buf, sizeof(buf), "ifconfig tap%d link %s active",
-                 i, device_mac);
+        snprintf(buf, sizeof(buf), "ifconfig %s link %s active",
+                 tap_device, device_mac);
         system(buf);
     }
 
-    snprintf(buf, sizeof(buf), "ifconfig tap%d %s netmask %s mtu %d up",
-             i, device_ip, device_mask, mtu);
+    snprintf(buf, sizeof(buf), "ifconfig %s %s netmask %s mtu %d up",
+             tap_device, device_ip, device_mask, mtu);
     system(buf);
 
-    traceEvent(TRACE_NORMAL, "Interface tap%d up and running (%s/%s)",
-               i, device_ip, device_mask);
+    traceEvent(TRACE_NORMAL, "Interface %s up and running (%s/%s)",
+               tap_device, device_ip, device_mask);
 
   /* Read MAC address */
 
-    snprintf(buf, sizeof(buf), "ifconfig tap%d |grep address|cut -c 11-28", i);
+    snprintf(buf, sizeof(buf), "ifconfig %s |grep address|cut -c 11-28", tap_device);
     /* traceEvent(TRACE_INFO, "%s", buf); */
 
     fd = popen(buf, "r");
@@ -85,11 +100,11 @@ int tuntap_open(tuntap_dev *device /* ignored */,
       pclose(fd);
 
       if(buf[0] == '\0') {
-	traceEvent(TRACE_ERROR, "Unable to read tap%d interface MAC address");
+	traceEvent(TRACE_ERROR, "Unable to read %s interface MAC address", tap_device);
 	exit(0);
       }
 
-      traceEvent(TRACE_NORMAL, "Interface tap%d mac %s", i, buf);
+      traceEvent(TRACE_NORMAL, "Interface %s mac %s", tap_device, buf);
       if(sscanf(buf, "%02x:%02x:%02x:%02x:%02x:%02x", &a, &b, &c, &d, &e, &f) == 6) {
 	device->mac_addr[0] = a, device->mac_addr[1] = b;
 	device->mac_addr[2] = c, device->mac_addr[3] = d;

@@ -94,12 +94,18 @@ setup with ping6 - the IPv6 ping command.
 NetBSD Support
 ------------
 
-Kitten-n2n supports NetBSD 5.0. You need to create tap interfaces in advance
+Kitten-n2n has been tested on NetBSD 5.0 and NetBSD 4.0, i386 and amd64.
+
+If you want to use a specific interface, you can create tap interfaces in advance
 by running:
 
 # ifconfig tap0 create
 
-Then edge should work for you.
+...then passing "-d tap0" to edge, or you can just omit the "-d" interface and edge will ask the kernel
+to create it an interface dynamically.
+
+The contents of the netbsd subdirectory is not released under the GPL with the rest of this package;
+it's BSD licensed.
 
 TODOs
 ------------
